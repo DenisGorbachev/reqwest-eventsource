@@ -117,35 +117,8 @@ impl EventSource {
 
 fn check_response(response: Response) -> Result<Response, Error> {
     match response.status() {
-        StatusCode::OK => {}
-        status => {
-            return Err(Error::InvalidStatusCode(status, response));
-        }
-    }
-    let content_type =
-        if let Some(content_type) = response.headers().get(&reqwest::header::CONTENT_TYPE) {
-            content_type
-        } else {
-            return Err(Error::InvalidContentType(
-                HeaderValue::from_static(""),
-                response,
-            ));
-        };
-    if content_type
-        .to_str()
-        .map_err(|_| ())
-        .and_then(|s| s.parse::<mime::Mime>().map_err(|_| ()))
-        .map(|mime_type| {
-            matches!(
-                (mime_type.type_(), mime_type.subtype()),
-                (mime::TEXT, mime::EVENT_STREAM)
-            )
-        })
-        .unwrap_or(false)
-    {
-        Ok(response)
-    } else {
-        Err(Error::InvalidContentType(content_type.clone(), response))
+        StatusCode::OK => Ok(response),
+        status => Err(Error::InvalidStatusCode(status, response)),
     }
 }
 
